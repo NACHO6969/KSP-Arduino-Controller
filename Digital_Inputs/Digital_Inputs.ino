@@ -101,10 +101,10 @@ void myCallbackHandler(byte messageType, byte msg[], byte msgSize) {
     if (msgSize = 1){
       airspeedMessage airspeed;
       airspeed = parseMessage<airspeedMessage>(msg);
-      if (airspeed.IAS<1000) {
+      if (airspeed.IAS<1234.8) {
         lcd.setCursor(0, 1);   lcd.print("Airspeed:");  lcd.setCursor (0, 12);  lcd.print((airspeed.IAS*3.6),"km/h");
       }
-      if (airspeed.IAS>1000) {
+      if (airspeed.IAS>1234.8) {
         lcd.setCursor(0, 1);   lcd.print("Airspeed:");  lcd.setCursor (0, 12);  lcd.print((airspeed.IAS/343), "MACH");
       }
     }
