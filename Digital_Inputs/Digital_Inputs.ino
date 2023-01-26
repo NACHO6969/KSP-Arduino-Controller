@@ -2,10 +2,31 @@
 #include <PayloadStructs.h>
 #include <LiquidCrystal.h>
 #include <LedControl.h>
+#include <protothreads.h>
 
 LiquidCrystal lcd(7, 8, 9, 10, 11, 12);
 int ledPin = 5;
 int conPin = 6;
+
+pt ptSegment;
+int SegmentThread(struct pt* pt) {
+  PT_BEGIN(pt);
+  
+   // Loop until 9999
+   for (int i=0;i<9999;i++) {
+    dig1 = (int)i/1000;
+    dig2 = ((int)i/100*100-(int)i/1000*1000)/100;
+    dig3 = ((int)i/10*10-(int)i/100*100)/10;
+    dig4 = i-(int)i/10*10;
+    lc.setRow(0, 0, Digits[dig1]);
+    lc.setRow(0, 1, Digits[dig2]);
+    lc.setRow(0, 2, Digits[dig3]);
+    lc.setRow(0, 3, Digits[dig4]);
+    delay(delaytime);
+  }
+
+  PT_END(pt);
+}
 
 //DataIn    pin 4
 //CLK       pin 3
@@ -42,6 +63,7 @@ void setup()
   while (!mySimpit.init()) {
     delay(100);
   }
+  PT_INIT(&ptSegment);
   digitalWrite(conPin, LOW);
   digitalWrite(LED_BUILTIN, HIGH);
   mySimpit.printToKSP("Connected", PRINT_TO_SCREEN);
@@ -55,35 +77,10 @@ void setup()
 
 void loop()
 {
-
   mySimpit.update();
-/*
-  fourSevenSegmentUpdater();
-  unsigned long currentMillis = millis();
-  if (currentMillis - previousMillis >= interval) {
-    previousMillis = currentMillis;
-    iterations++;
-  }
-  if (iterations >= maxIterations) {
-    iterations = 0;
-  }
-*/
+  PT_SCHEDULE(SegmentThread(&ptSegment));
 }
-/*
-void fourSevenSegmentUpdater() {
-  for (int i=0;i<9999;i++) {
-    dig1 = (int)i/1000;
-    dig2 = ((int)i/100*100-(int)i/1000*1000)/100;
-    dig3 = ((int)i/10*10-(int)i/100*100)/10;
-    dig4 = i-(int)i/10*10;
-    lc.setRow(0, 0, Digits[dig1]);
-    lc.setRow(0, 1, Digits[dig2]);
-    lc.setRow(0, 2, Digits[dig3]);
-    lc.setRow(0, 3, Digits[dig4]);
-    delay(delaytime);
-  }
-}
-*/
+
 void myCallbackHandler(byte messageType, byte msg[], byte msgSize) {
   switch(messageType) {
   case ACTIONSTATUS_MESSAGE:
