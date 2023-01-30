@@ -3,22 +3,19 @@
 #include <LiquidCrystal.h>
 #include <LedControl.h>
 
-LiquidCrystal lcd(7, 8, 9, 10, 11, 12);
-int ledPin = 5;
-int conPin = 6;
-
-int Digits[10] = {B01111110, B00110000, B1101101, B01111001, B00110011, B01011011, B01011111, B01110000, B01111111, B01111011};
-int dig1;   int dig2;   int dig3;   int dig4;
+LiquidCrystal lcd(7, 8, 9, 10, 11, 12); //define pins for lcd-display
+int ledPin = 5; //define pin for brake-pin
+int conPin = 6; //define pin for status-pin
 
 //DataIn    pin 4
 //CLK       pin 3
 //CS        pin 2
-LedControl lc = LedControl(4,3,2,1);
+LedControl lc = LedControl(4,3,2,1);  //define pins for four-seven-segment display (1 isn't a pin)
 
 float heading;
 byte currentActionStatus = 0;
 byte leds = 0;
-KerbalSimpit mySimpit(Serial);
+KerbalSimpit mySimpit(Serial);  //initialise simpit library
 
 void setup() 
 {
@@ -34,7 +31,7 @@ void setup()
   digitalWrite(LED_BUILTIN, LOW);
   digitalWrite(conPin, HIGH);
   Serial.begin(115200);
-  while (!mySimpit.init()) {
+  while (!mySimpit.init()) {  //wait for confirmed handshake signal
     delay(100);
   }
   digitalWrite(conPin, LOW);
@@ -42,15 +39,17 @@ void setup()
   mySimpit.printToKSP("Connected", PRINT_TO_SCREEN);
   lcd.clear();  delay(400);
   lcd.print("Connection");  lcd.setCursor (0, 2);  lcd.print("established!");
-  mySimpit.inboundHandler(myCallbackHandler);
+  mySimpit.inboundHandler(myCallbackHandler); //define inboundHandler function
   mySimpit.registerChannel(ACTIONSTATUS_MESSAGE);
   mySimpit.registerChannel(AIRSPEED_MESSAGE);
-  mySimpit.registerChannel(ROTATION_DATA_MESSAGE);
+  mySimpit.registerChannel(ALTITUDE_MESSAGE);
+  mySimpit.registerChannel(VELOCITY_MESSAGE);
+  mySimpit.registerChannel(ROTATION_DATA_MESSAGE); //register incoming data channels
 }
 
 void loop()
 {
-  mySimpit.update();
+  mySimpit.update();  //call an update on all incoming channels
 }
 
 void myCallbackHandler(byte messageType, byte msg[], byte msgSize) {
@@ -98,5 +97,24 @@ void myCallbackHandler(byte messageType, byte msg[], byte msgSize) {
       num3 = floor(heading - num1*100 - num2*10);
       lc.setDigit(0, 0, num1, false); lc.setDigit(0, 1, num2, false); lc.setDigit(0, 2, num3, false);
     }
+  case ALTITUDE_MESSAGE:
+    if (msgSize = 1) {
+      altitudeMessage altitude;
+      altitude = parseMessage<altitudeMessage>(msg);
+      altitudeSealevel = altitude.sealevel;
+    }
+  case VELOCITY_MESSAGE:
+    if (msgSize = 1) {
+      velocityMessage velocity;
+      velocity = parseMessage<velocityMessage>(msg);
+      // velocity.orbital
+      // velocity.surface
+      if (altitudeSealevel>60000) {
+        // -- print velocity.surface to lcd 
+      }
+      else {
+        // -- print velocity.orbital to lcd
+      }
+    }  
   }
 }"# KSP-Arduino-Controller" 
